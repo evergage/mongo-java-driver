@@ -692,18 +692,45 @@ public class LazyBSONObject implements BSONObject {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        LazyBSONObject other = (LazyBSONObject) o;
 
-        LazyBSONObject that = (LazyBSONObject) o;
+        if (this.getBytes() == other.getBytes() && this.getOffset() == other.getOffset()) {
+            return true;
+        }
+        if (this.getBytes() == null || other.getBytes() == null) {
+            return false;
+        }
 
-        return Arrays.equals(this._input.array(), that._input.array());
+        if (this.getBytes().length == 0 || other.getBytes().length == 0) {
+            return false;
+        }
+
+        //comparing document length
+        int length = this.getBytes()[this.getOffset()];
+        if (other.getBytes()[other.getOffset()] != length) {
+            return false;
+        }
+
+        //comparing document contents
+        for (int i = 0; i < length; i++) {
+            if (this.getBytes()[this.getOffset() + i] != other.getBytes()[other.getOffset() + i]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(_input.array());
+        return Arrays.hashCode(Arrays.copyOfRange(this.getBytes(), this.getOffset(), this.getBytes().length));
     }
 
     /**
